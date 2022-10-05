@@ -1,0 +1,232 @@
+gitlab ssh
+```
+gitlab set ssh keyshell by GitPaulo GitPaulo        on Sep 12 2021 Comment
+21
+ssh-keygen -t rsa -C "Comment for key"
+Generate SSH Key:
+- ssh-keygen -t rsa -C "Comment for key"
+Add it to gitlab:
+- cat ~/.ssh/id_rsa.pub (copy all output)
+- Open web browser, go to: Gitlab > User Settings > SSH Keys
+- Paste copied output in the SSH key section
+Test connection:
+- ssh -T git@gilab.domain.com (can use private url)
+Do some git stuff:
+- git clone something
+
+Ron
+```
+ 專案建置-TLE.md
+ 環境建置.md
+'Proxy 憑證設定.md'
+
+### Proxy 憑證設定
+
+### 版本修改記錄
+
+| 日期       | 版本    | 說明 | 修訂人員 |
+| ---------- | ------- | ---- | -------- |
+| 2020/01/21 | Ver 1.0 | 初版 | Boker    |
+|            |         |      |          |
+|            |         |      |          |
+|            |         |      |          |
+|            |         |      |          |
+|            |         |      |          |
+|            |         |      |          |
+|            |         |      |          |
+|            |         |      |          |
+
+
+
+<div style="page-break-after: always;"></div>
+
+
+# 環境建置
+
+
+
+### 版本修改記錄
+
+| 日期       | 版本    | 說明 | 修訂人員 |
+| ---------- | ------- | ---- | -------- |
+| 2019/06/27 | Ver 1.0 | 初版 | Boker    |
+|            |         |      |          |
+|            |         |      |          |
+|            |         |      |          |
+|            |         |      |          |
+|            |         |      |          |
+|            |         |      |          |
+|            |         |      |          |
+|            |         |      |          |
+
+
+
+<div style="page-break-after: always;"></div>
+
+
+
+### 開發工具
+
+1. **eclipse** : Version: 2019-03++
+2. **Java**:jdk1.8.0_131
+3. **Gradle**:5.4+
+4. **Tomcat**:8.5++
+5. **Git**
+
+
+
+<div style="page-break-after: always;"></div>
+
+### 設定環境
+
+#### 建立專案目錄
+
+- 結構如下圖，或自行定義好管理專案方式即可。
+
+![環境建置-4](..\..\IMG\環境建置-4.png)
+
+
+
+#### Git安裝
+
+- 至<https://git-scm.com/>，下載安裝Git。
+
+
+#### JAVA
+
+- 設定JAVA_HOME
+
+
+![環境建置-1](..\..\IMG\環境建置-1.png)
+
+#### Gradle
+
+- ##### 設定GRADLE_HOME
+
+
+
+
+![環境建置-1](..\..\IMG\環境建置-2.png)
+
+#### PATH
+
+![環境建置-1](..\..\IMG\環境建置-3.png)
+
+
+
+#### ECLIPSE
+
+- 解壓縮
+
+- 調整eclipse.ini，修改jdk位置
+
+  ![環境建置-eclipse-2](..\..\IMG\環境建置-eclipse-2.png)
+
+- 啟動至建立的workspace
+
+  ![環境建置-eclipse-2](..\..\IMG\環境建置-eclipse-1.png)
+
+- 設定eclipse的Gradle 與 Java Home
+  ![環境建置-eclipse-2](..\..\IMG\環境建置-eclipse-3.png)
+
+
+
+
+
+- 
+
+#### 建立專案
+
+- 建置Gradle專案
+
+![環境建置-5](..\..\IMG\環境建置-5.png)
+
+- Import範例專案
+
+![環境建置-5](..\..\IMG\環境建置-6.png)
+
+
+- 建立出.gradle目錄
+
+
+![環境建置-5](..\..\IMG\環境建置-7.png)
+
+- 建立一個Gradle.properties
+
+  - 內容如下，中文字為自行輸入部分
+
+    systemProp.http.proxyHost=wsga.ctl.com
+    systemProp.http.proxyPort=8080
+    systemProp.http.proxyUser=TWLIFE\帳號
+    systemProp.http.proxyPassword=密碼
+    systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
+
+    systemProp.https.proxyHost=wsga.ctl.com
+    systemProp.https.proxyPort=8080
+    systemProp.https.proxyUser=TWLIFE\帳號
+    systemProp.https.proxyPassword=密碼
+    systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost
+
+- Refesh Gradle專案
+
+![環境建置-8](..\..\IMG\環境建置-8.png)
+
+
+
+- 在eclipse專案，建立AP Server。
+  ![環境建置-tomcat-1](..\..\IMG\環境建置-tomcat-1.png)
+
+- 有這個畫面就是OK了
+![環境建置-tomcat-3](..\..\IMG\環境建置-tomcat-3.png)
+
+
+
+
+
+
+![專案建置](..\..\IMG\專案建置-gradle.png)
+
+
+
+(2021/04/22 補充說明)
+
+ps1. 如果電腦不是使用全新機，可能建專案過程eclipse會無法正確吃進在preference裡所設的指定路徑，故此時需要在頁面"Import Gradle Project"中，在欄位"Override workspace settings"做勾選，並在欄位"Local installation directory"和欄位"Java home"填入指定路徑，才不會有類似下方建專案失敗的情形發生。
+
+![環境建置-補充說明-1](..\..\IMG\環境建置-補充說明-1.png)
+
+ps2. 在eclipse中調整編碼避免字元顯示錯誤。
+
+![環境建置-補充說明-2](..\..\IMG\環境建置-補充說明-2.png)
+
+ps3. 若匯入的專案是iKash，第一次"Run on Server"會無法正確打開網頁(錯誤訊息如下)，此時需參閱另一份文件"專案建置-TLEADM"，在部屬專案之前加入參數。
+
+![環境建置-補充說明-3](..\..\IMG\環境建置-補充說明-3.png)
+
+![環境建置-補充說明-4](..\..\IMG\環境建置-補充說明-4.png)
+
+
+#### 下載憑證
+
+- 範例網址 <https://repo.maven.apache.org/maven2>
+- ![1579230187135](..\..\IMG\憑證下載.png)
+
+#### 匯入憑證
+
+```
+cd D:\702024\All_Lib\java\jdk1.8.0_131\bin 
+keytool -import -alias repo -keystore D:\702024\All_Lib\java\jdk1.8.0_131\jre\lib\security\cacerts -file D:\Users\702024\Desktop\1.cer
+keytool -delete -alias repo -keystore "D:\702024\All_Lib\java\jdk1.8.0_131\jre\lib\security\cacerts" -storepass changeit
+
+
+
+- cd D:\003891\All_Lib\java\jdk1.8.0_131\bin
+
+
+- keytool -import -alias  名稱-keystore **JAVA憑證位置** -file **下載回來的憑證檔**
+  - 密碼該是預設的changeit
+  - keytool -import -alias repo -keystore D:\003891\All_Lib\java\jdk1.8.0_131\jre\lib\security\cacerts -file D:\Users\003891\Desktop\1.cer
+- 刪除憑證
+  - keytool -delete -alias repo -keystore "D:\003891\All_Lib\java\jdk1.8.0_131\jre\lib\security\cacerts" -storepass changeit
+
+- 列出憑證
+  - keytool -list -v -keystore  D:/003891/All_Lib/java/jdk1.8.0_131/jre/lib/security/cacerts
