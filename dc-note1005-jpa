@@ -1,0 +1,160 @@
+
+
+
+
+
+class Users
+```
+Searching 4 files for "UsersRepository"
+
+D:\githubcode\spring-jpa-hibernate-mysql-example-master\src\main\java\com\techprimers\jpa\springjpahibernateexample\repository\UsersRepository.java:
+    6  import java.util.List;
+    7  
+    8: public interface UsersRepository extends JpaRepository<Users, Integer> {
+    9      List<Users> findByName(String name);
+   10  
+
+D:\githubcode\spring-jpa-hibernate-mysql-example-master\src\main\java\com\techprimers\jpa\springjpahibernateexample\resource\UsersResource.java:
+    2  
+    3  import com.techprimers.jpa.springjpahibernateexample.model.Users;
+    4: import com.techprimers.jpa.springjpahibernateexample.repository.UsersRepository;
+    5  import org.springframework.beans.factory.annotation.Autowired;
+    6  import org.springframework.web.bind.annotation.GetMapping;
+    .
+   16  
+   17      @Autowired
+   18:     UsersRepository usersRepository;
+   19  
+   20      @GetMapping("/all")
+   21      public List<Users> getAll() {
+   22:         return usersRepository.findAll();
+   23      }
+   24  
+   25      @GetMapping("/{name}")
+   26      public List<Users> getUser(@PathVariable("name") final String name) {
+   27:         return usersRepository.findByName(name);
+   28  
+   29      }
+   ..
+   31      @GetMapping("/id/{id}")
+   32      public Users getId(@PathVariable("id") final Integer id) {
+   33:         return usersRepository.findOne(id);
+   34      }
+   35  
+   ..
+   42          users.setName(name);
+   43  
+   44:         return usersRepository.save(users);
+   45      }
+   46  }
+
+8 matches across 2 files
+
+
+Searching 4 files for "Users"
+
+D:\githubcode\spring-jpa-hibernate-mysql-example-master\src\main\java\com\techprimers\jpa\springjpahibernateexample\model\Users.java:
+    7  
+    8  @Entity
+    9: @Table(name = "users", catalog = "test")
+   10: public class Users {
+   11  
+   12      @Id
+   ..
+   18      private String teamName;
+   19  
+   20:     public Users() {
+   21      }
+   22  
+
+D:\githubcode\spring-jpa-hibernate-mysql-example-master\src\main\java\com\techprimers\jpa\springjpahibernateexample\repository\UsersRepository.java:
+    1  package com.techprimers.jpa.springjpahibernateexample.repository;
+    2  
+    3: import com.techprimers.jpa.springjpahibernateexample.model.Users;
+    4  import org.springframework.data.jpa.repository.JpaRepository;
+    5  
+    6  import java.util.List;
+    7  
+    8: public interface UsersRepository extends JpaRepository<Users, Integer> {
+    9:     List<Users> findByName(String name);
+   10  
+   11  }
+
+D:\githubcode\spring-jpa-hibernate-mysql-example-master\src\main\java\com\techprimers\jpa\springjpahibernateexample\resource\UsersResource.java:
+    1  package com.techprimers.jpa.springjpahibernateexample.resource;
+    2  
+    3: import com.techprimers.jpa.springjpahibernateexample.model.Users;
+    4: import com.techprimers.jpa.springjpahibernateexample.repository.UsersRepository;
+    5  import org.springframework.beans.factory.annotation.Autowired;
+    6  import org.springframework.web.bind.annotation.GetMapping;
+    .
+   12  
+   13  @RestController
+   14: @RequestMapping("/rest/users")
+   15: public class UsersResource {
+   16  
+   17      @Autowired
+   18:     UsersRepository usersRepository;
+   19  
+   20      @GetMapping("/all")
+   21:     public List<Users> getAll() {
+   22:         return usersRepository.findAll();
+   23      }
+   24  
+   25      @GetMapping("/{name}")
+   26:     public List<Users> getUser(@PathVariable("name") final String name) {
+   27:         return usersRepository.findByName(name);
+   28  
+   29      }
+   30  
+   31      @GetMapping("/id/{id}")
+   32:     public Users getId(@PathVariable("id") final Integer id) {
+   33:         return usersRepository.findOne(id);
+   34      }
+   35  
+   36      @GetMapping("/update/{id}/{name}")
+   37:     public Users update(@PathVariable("id") final Integer id, @PathVariable("name")
+   38                           final String name) {
+   39  
+   40  
+   41:         Users users = getId(id);
+   42:         users.setName(name);
+   43  
+   44:         return usersRepository.save(users);
+   45      }
+   46  }
+
+25 matches across 3 files
+
+
+
+
+
+findAll()
+UsersRepository
+UsersResource.java
+```
+public class UsersResource {
+
+    @Autowired
+    UsersRepository usersRepository;
+
+    @GetMapping("/all")
+    public List<Users> getAll() {
+        return usersRepository.findAll();
+    }
+
+
+UsersRepository.java 
+```
+package com.techprimers.jpa.springjpahibernateexample.repository;
+
+import com.techprimers.jpa.springjpahibernateexample.model.Users;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface UsersRepository extends JpaRepository<Users, Integer> {
+    List<Users> findByName(String name);
+
+}
