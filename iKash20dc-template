@@ -12,6 +12,50 @@ D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\config\WebConfig.java:
     5  import org.springframework.context.annotation.Configuration;
     6  
     7: import com.twlife.ikash20.ikash20.filter.LogRequestIdFilter;
+        ... ikash20.filter
+            ```
+            //dc- ikash20.filter
+            package com.twlife.ikash20.ikash20.filter;
+        ... LogRequestIdFilter   
+            @Slf4j
+            public class LogRequestIdFilter extends OncePerRequestFilter { /** 繼承OncePerRequestFilter，確保request只會被filter過濾一次 */ ...
+            ```
+            LogRequestIdFilter
+            ```
+            /**
+             * 用來給每個Request一個ID，便於用來追蹤問題
+             * 參考 https://medium.com/@d.lopez.j/spring-boot-setting-a-unique-id-per-request-dd648efef2b
+             */
+            @Slf4j
+            public class LogRequestIdFilter extends OncePerRequestFilter { /** 繼承OncePerRequestFilter，確保request只會被filter過濾一次 */ 
+
+                private final String RequestIdResponseHeader = "Request_Token";
+                private final String RequestIdRequestIdKey = "Request_Id";
+
+                @Override
+                protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain)
+                    throws ServletException, IOException {
+                        try {
+                            final String token = RequestIdUtil.getRequestId();
+
+                            MDC.put(RequestIdRequestIdKey, token);
+
+                            if (!StringUtils.isEmpty(RequestIdResponseHeader)) {
+                                response.addHeader(RequestIdResponseHeader, token);
+                            } else {
+                                log.error("RequestIdResponseHeader的值不存在");
+                            }
+                            filterChain.doFilter(request, response);
+                        } finally {
+                            MDC.remove(RequestIdRequestIdKey);
+                        }
+
+                }
+
+            }
+
+            
+
     8: import com.twlife.ikash20.ikash20.filter.extension.ContentCachingFilter;
     9  
    10  import org.springframework.core.Ordered;
