@@ -1,0 +1,1670 @@
+
+
+oauth2
+```
+Searching 32 files for "Filter"
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\config\WebConfig.java:
+    1  package com.twlife.ikash20.ikash20.config;
+    2  
+    3: import org.springframework.boot.web.servlet.FilterRegistrationBean;
+    4  import org.springframework.context.annotation.Bean;
+    5  import org.springframework.context.annotation.Configuration;
+    6  
+    7: import com.twlife.ikash20.ikash20.filter.LogRequestIdFilter;
+    8: import com.twlife.ikash20.ikash20.filter.extension.ContentCachingFilter;
+    9  
+   10  import org.springframework.core.Ordered;
+   ..
+   19       */
+   20      @Bean
+   21:     public FilterRegistrationBean<LogRequestIdFilter> logRequestIdFilter()
+   22      {
+   23:         FilterRegistrationBean<LogRequestIdFilter> registrationBean = new FilterRegistrationBean<>();
+   24:         LogRequestIdFilter filter = new LogRequestIdFilter();
+   25  
+   26:         registrationBean.setFilter(filter);
+   27          registrationBean.setOrder(-101);
+   28          return registrationBean;
+   ..
+   30  
+   31      /**
+   32:      * 綁定快取request Filter，讓Filter內可以重複getReader、getInputStream
+   33       * https://www.baeldung.com/spring-reading-httpservletrequest-multiple-times
+   34       * https://stackoverflow.com/questions/23080668/spring-injection-on-current-context-for-autowire-doesnt-work
+   35       * 
+   36:      * 此Filter需再IkashBearerTokenResolver執行前執行，故 Oder需小於-100
+   37       */
+   38      @Bean
+   39:     public FilterRegistrationBean<ContentCachingFilter> contentCachingFilter()
+   40      {
+   41:         FilterRegistrationBean<ContentCachingFilter> registrationBean = new FilterRegistrationBean<>();
+   42:         ContentCachingFilter filter = new ContentCachingFilter();
+   43  
+   44:         registrationBean.setFilter(filter);
+   45          registrationBean.setOrder(-100);
+   46          return registrationBean;
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\config\WebSecurityConfig.java:
+    7  import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+    8  import org.springframework.security.config.http.SessionCreationPolicy;
+    9: import org.springframework.security.web.SecurityFilterChain;
+   10  
+   11  import com.twlife.ikash20.ikash20.handler.JwtAccessDeniedHandler;
+   ..
+   37  
+   38      @Bean
+   39:     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+   40  
+   41          http
+   ..
+   86              
+   87              ;
+   88:          //根據設定生成SecurityFilterChain物件
+   89          return http.build();
+   90      }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\filter\extension\CachedBodyHttpServletRequest.java:
+    1: package com.twlife.ikash20.ikash20.filter.extension;
+    2  
+    3  import java.io.BufferedReader;
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\filter\extension\CachedBodyServletInputStream.java:
+    1: package com.twlife.ikash20.ikash20.filter.extension;
+    2  
+    3  import java.io.ByteArrayInputStream;
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\filter\extension\ContentCachingFilter.java:
+    1: package com.twlife.ikash20.ikash20.filter.extension;
+    2  
+    3  import java.io.IOException;
+    4  
+    5: import javax.servlet.FilterChain;
+    6  import javax.servlet.ServletException;
+    7: import javax.servlet.annotation.WebFilter;
+    8  import javax.servlet.http.HttpServletRequest;
+    9  import javax.servlet.http.HttpServletResponse;
+   ..
+   12  import org.springframework.core.annotation.Order;
+   13  import org.springframework.stereotype.Component;
+   14: import org.springframework.web.filter.OncePerRequestFilter;
+   15  
+   16  /**
+   17:  * 快取request，讓Filter內可以重複getReader、getInputStream
+   18   * https://www.baeldung.com/spring-reading-httpservletrequest-multiple-times
+   19   * https://stackoverflow.com/questions/23080668/spring-injection-on-current-context-for-autowire-doesnt-work
+   20   */
+   21: public class ContentCachingFilter extends OncePerRequestFilter {
+   22  
+   23      @Override
+   24:     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
+   25:         System.out.println("IN  ContentCachingFilter ");
+   26          CachedBodyHttpServletRequest cachedBodyHttpServletRequest = new CachedBodyHttpServletRequest(httpServletRequest);
+   27:         filterChain.doFilter(cachedBodyHttpServletRequest, httpServletResponse);
+   28      }
+   29  
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\filter\LogRequestIdFilter.java:
+    1: package com.twlife.ikash20.ikash20.filter;
+    2  
+    3  import java.io.IOException;
+    4  
+    5: import javax.servlet.FilterChain;
+    6  import javax.servlet.ServletException;
+    7  import javax.servlet.http.HttpServletRequest;
+    .
+   12  import org.springframework.core.annotation.Order;
+   13  import org.springframework.stereotype.Component;
+   14: import org.springframework.web.filter.OncePerRequestFilter;
+   15  
+   16  import com.twlife.ikash20.ikash20.util.RequestIdUtil;
+   ..
+   25   */
+   26  @Slf4j
+   27: public class LogRequestIdFilter extends OncePerRequestFilter { /** 繼承OncePerRequestFilter，確保request只會被filter過濾一次 */ 
+   28  
+   29      private final String RequestIdResponseHeader = "Request_Token";
+   ..
+   31  
+   32      @Override
+   33:     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain)
+   34          throws ServletException, IOException {
+   35              try {
+   ..
+   43                      log.error("RequestIdResponseHeader的值不存在");
+   44                  }
+   45:                 filterChain.doFilter(request, response);
+   46              } finally {
+   47                  MDC.remove(RequestIdRequestIdKey);
+
+63 matches across 6 files
+
+
+Searching 32 files for "OAuth2"
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\common\JwtRenewResponseBodyAdvice.java:
+   10  import org.springframework.security.core.Authentication;
+   11  import org.springframework.security.core.context.SecurityContextHolder;
+   12:												
+   13  import org.springframework.web.bind.annotation.ControllerAdvice;
+   14  import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\config\WebSecurityConfig.java:
+   14  import com.twlife.ikash20.ikash20.service.JwtService;
+   15  
+   16: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   17: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   18: import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+   19: import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+   20  
+   21  import lombok.extern.slf4j.Slf4j;
+   ..
+   60              // .csrf((csrf) -> csrf.ignoringAntMatchers("/api/login"))
+   61              //設定認證方式為JWT，並且設定了一個JWT認證裝換器，用於去掉解析許可權時的SCOOP_字首
+   62:             .oauth2ResourceServer(oauth2 ->
+   63:                 oauth2
+   64                      
+   65                      // 設定認證失敗或者無許可權時的處理器-認證失敗
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\resolver\IkashBearerTokenResolver.java:
+   11  import org.springframework.http.HttpHeaders;
+   12  import org.springframework.http.MediaType;
+   13: import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+   14: import org.springframework.security.oauth2.server.resource.BearerTokenError;
+   15: import org.springframework.security.oauth2.server.resource.BearerTokenErrors;
+   16: import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+   17  import org.springframework.util.StringUtils;
+   18  import org.springframework.web.util.ContentCachingRequestWrapper;
+   ..
+   27  /**
+   28   * 自訂iKash JWT 獲取位置
+   29:  * https://github.com/spring-projects/spring-security/blob/b28efbc4b8eec0f942aa1a1f7cfa3b8ee7884f42/oauth2/oauth2-resource-server/src/main/java/org/springframework/security/oauth2/server/resource/web/DefaultBearerTokenResolver.java#L39
+   30   */
+   31  @Slf4j
+   ..
+   56  				final BearerTokenError error = BearerTokenErrors
+   57  						.invalidRequest("Found multiple bearer tokens in the request");
+   58: 				throw new OAuth2AuthenticationException(error);
+   59  			}
+   60  			return authorizationHeaderToken;
+   ..
+  109  		if (!matcher.matches()) {
+  110  			BearerTokenError error = BearerTokenErrors.invalidToken("Bearer token is malformed");
+  111: 			throw new OAuth2AuthenticationException(error);
+  112  		}
+  113  		return matcher.group("token");
+  ...
+  123  		}
+  124  		BearerTokenError error = BearerTokenErrors.invalidRequest("Found multiple bearer tokens in the request");
+  125: 		throw new OAuth2AuthenticationException(error);
+  126  	}
+  127  
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\service\JwtService.java:
+   13  import org.springframework.security.core.GrantedAuthority;
+   14  import org.springframework.security.core.userdetails.UserDetails;
+   15: import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+   16: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   17: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   18: import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+   19: import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+   20: import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+   21: import org.springframework.security.oauth2.jwt.JwtClaimsSet.Builder;
+   22  import org.springframework.stereotype.Service;
+   23  
+   ..
+   81      public String generateToken(UserDetails userDetails) {
+   82          Instant now = Instant.now();
+   83:         // 將使用者許可權資訊使用空格分割拼為字串，放到JWT的payload的scope欄位中，注意不要改變scope這個屬性，這是Spring Security OAuth2 JWT預設處理方式，在JWT解碼時需要讀取該欄位，轉為使用者的許可權資訊！
+   84          String scope = userDetails.getAuthorities().stream()
+   85                  .map(GrantedAuthority::getAuthority)
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\service\LoginService.java:
+   12  import org.springframework.security.core.authority.SimpleGrantedAuthority;
+   13  import org.springframework.security.core.userdetails.User;
+   14: import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+   15: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   16: import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+   17  import org.springframework.stereotype.Service;
+   18  
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\util\RsaUtil.java:
+   11  
+   12  import org.springframework.data.util.Pair;
+   13: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   14: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   15: import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+   16: import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+   17  
+   18  import com.nimbusds.jose.jwk.JWK;
+
+34 matches across 6 files
+
+
+Searching 32 files for "jwt"
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\common\JwtRenewResponseBodyAdvice.java:
+   10  import org.springframework.security.core.Authentication;
+   11  import org.springframework.security.core.context.SecurityContextHolder;
+   12: import org.springframework.security.oauth2.jwt.Jwt;
+   13  import org.springframework.web.bind.annotation.ControllerAdvice;
+   14  import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+   15  
+   16: import com.twlife.ikash20.ikash20.res.base.JwtRes;
+   17: import com.twlife.ikash20.ikash20.service.JwtService;
+   18  
+   19  import lombok.extern.slf4j.Slf4j;
+   20  
+   21  /**
+   22:  * 用於產生JwtRes內Renew的Jwt
+   23   */
+   24  @Slf4j
+   25  @ControllerAdvice
+   26: public class JwtRenewResponseBodyAdvice implements ResponseBodyAdvice<Object> {
+   27  
+   28      @Resource
+   29:     private JwtService jwtService;
+   30      /**
+   31:      * 用於產生JwtRes內Renew的Jwt
+   32       * @param body Response的資料
+   33       * @param returnType Response資料類型
+   ..
+   42      public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
+   43              Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
+   44:         if (body instanceof JwtRes) {
+   45              try {
+   46:                 JwtRes<Object> res = (JwtRes<Object>)body;
+   47                  Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+   48:                 // 卻認為已經Jwt驗證過
+   49                  if (authentication.getCredentials() != "") {
+   50:                     Jwt jwtCredentials = (Jwt)authentication.getCredentials();
+   51:                     // 產生新JWT
+   52:                     String newJwt = jwtService.renewToken(jwtCredentials.getTokenValue());
+   53:                     res.setJwt(newJwt);
+   54                  }
+   55              } catch (Exception e) {
+   56:                 log.warn("JwtRenewResponseBodyAdvice.beforeBodyWrite:", e);
+   57              }
+   58          }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\config\WebSecurityConfig.java:
+    9  import org.springframework.security.web.SecurityFilterChain;
+   10  
+   11: import com.twlife.ikash20.ikash20.handler.JwtAccessDeniedHandler;
+   12: import com.twlife.ikash20.ikash20.handler.JwtAuthenticationEntryPoint;
+   13  import com.twlife.ikash20.ikash20.resolver.IkashBearerTokenResolver;
+   14: import com.twlife.ikash20.ikash20.service.JwtService;
+   15  
+   16: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   17: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   18: import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+   19: import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+   20  
+   21  import lombok.extern.slf4j.Slf4j;
+   ..
+   24  
+   25  /**
+   26:  * 設定JWT 做驗證
+   27   * https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter
+   28   */
+   ..
+   34  
+   35      @Autowired
+   36:     private JwtService jwtService;
+   37  
+   38      @Bean
+   ..
+   55                      .anyRequest().authenticated()
+   56              )
+   57:             //採用JWT認證無需session保持，所以禁用掉session管理器
+   58              .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+   59              // //login介面可能來自其他站點，所以對login不做csrf防護
+   60              // .csrf((csrf) -> csrf.ignoringAntMatchers("/api/login"))
+   61:             //設定認證方式為JWT，並且設定了一個JWT認證裝換器，用於去掉解析許可權時的SCOOP_字首
+   62              .oauth2ResourceServer(oauth2 ->
+   63                  oauth2
+   64                      
+   65                      // 設定認證失敗或者無許可權時的處理器-認證失敗
+   66:                     .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
+   67                      // 設定認證失敗或者無許可權時的處理器-認證成功後無權限訪問
+   68:                     .accessDeniedHandler(new JwtAccessDeniedHandler())
+   69:                     // jwt 來源加Request body    
+   70:                     // https://medium.com/swlh/stateless-jwt-authentication-with-spring-boot-a-better-approach-1f5dbae6c30f
+   71                      .bearerTokenResolver(new IkashBearerTokenResolver())
+   72:                     .jwt()
+   73:                     // 將JWT資料轉換為JwtAuthenticationToken
+   74:                     .jwtAuthenticationConverter(converterJwtAuthentication())
+   75  
+   76              )
+   ..
+   91  
+   92      /**
+   93:      * JWT解碼器，用於認證時的JWT解碼 
+   94       */
+   95      @Bean
+   96:     JwtDecoder jwtDecoder() {
+   97:         return jwtService.jwtDecoder();
+   98      }
+   99  
+  100      /**
+  101:      * JWT編碼器，生成JWT
+  102       */
+  103      @Bean
+  104:     JwtEncoder jwtEncoder() {
+  105:         return jwtService.jwtEncoder();
+  106:         // JWK jwk = new RSAKey.Builder(jwtService.getRsaPublicKey()).privateKey(jwtService.getPrivateKey()).build();
+  107          // JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+  108:         // return new NimbusJwtEncoder(jwks);
+  109      }
+  110      
+  111  
+  112      /**
+  113:      * JWT認證解碼時，去掉Spring Security對許可權附帶的預設字首SCOOP_
+  114       */
+  115      @Bean
+  116:     JwtAuthenticationConverter converterJwtAuthentication() {
+  117:         final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+  118:         jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
+  119:         final JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+  120:         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+  121:         return jwtAuthenticationConverter;
+  122      }
+  123  }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\controller\devsample\GetEnv.java:
+   13  
+   14  import com.twlife.ikash20.ikash20.entity.AppConfigEntity;
+   15: import com.twlife.ikash20.ikash20.req.base.JwtReq;
+   16: import com.twlife.ikash20.ikash20.res.base.JwtRes;
+   17  import com.twlife.ikash20.ikash20.service.LoginService;
+   18  
+   ..
+   66          log.warn("startTime:" + startTime);
+   67  
+   68:         String jwt = loginService.login("userId", "pwd");
+   69  
+   70          long endTime = System.nanoTime();
+   ..
+   74  
+   75  
+   76:         return jwt;
+   77      }
+   78  
+   ..
+   80      @RequestMapping(value = "GetEnv3", method = RequestMethod.POST) /** 同檔案名稱，且一定要限制取Http Method (一般情況下請設為POST) */ 
+   81      @Operation(summary = "Dev Test")
+   82:     public JwtRes<String> getEnv3(@RequestBody final JwtReq<AppConfigEntity> req) {
+   83          
+   84:         String jwt = loginService.login("userId", "pwd");
+   85          long startTime = System.nanoTime();
+   86        
+   87          long endTime = System.nanoTime();
+   88          log.warn("endTime:" + endTime);
+   89:         JwtRes<String> res = new JwtRes<String>();
+   90          res.setResBody("That took " + (endTime - startTime) + " milliseconds");
+   91  
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\controller\devsample\TempLogin.java:
+   35          log.warn("startTime:" + startTime);
+   36  
+   37:         String jwt = loginService.login("userId", "pwd");
+   38  
+   39          long endTime = System.nanoTime();
+   ..
+   43  
+   44  
+   45:         return jwt;
+   46      }
+   47  }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\controller\login\login.java:
+    7  import org.springframework.web.bind.annotation.RestController;
+    8  
+    9: import com.twlife.ikash20.ikash20.req.base.JwtReq;
+   10: import com.twlife.ikash20.ikash20.res.base.JwtRes;
+   11  import com.twlife.ikash20.ikash20.service.LoginService;
+   12  
+   ..
+   27      @RequestMapping(value = "login", method = RequestMethod.POST) /** 同檔案名稱，且一定要限制取Http Method (一般情況下請設為POST) */ 
+   28      @Operation(summary = "登入")
+   29:     public JwtRes<Object> login(@RequestBody final JwtReq<Object> req) {
+   30         // TODO: 待補上真的登入邏輯
+   31:         String jwt = loginService.login("userId", "pwd");
+   32  
+   33:         JwtRes<Object> res = new JwtRes<>();
+   34:         res.setJwt(jwt);
+   35          return res;
+   36      }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\handler\GlobalExceptionHandler.java:
+   18  import org.springframework.web.servlet.function.ServerResponse;
+   19  
+   20: import com.twlife.ikash20.ikash20.res.base.JwtRes;
+   21  
+   22  import lombok.extern.slf4j.Slf4j;
+   ..
+   39          log.error("GlobalExceptionHandler.globalExceptionHandler", ex.getMessage());
+   40          ServerResponse.ok();
+   41:         JwtRes<Object> res = new JwtRes<Object>();
+   42          res.setCode(getStatus(request).value());
+   43          res.setMsg(ex.getMessage());
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\handler\JwtAccessDeniedHandler.java:
+   16  import com.fasterxml.jackson.databind.ObjectMapper;
+   17  
+   18: import com.twlife.ikash20.ikash20.res.base.JwtRes;
+   19  import com.twlife.ikash20.ikash20.resolver.IkashBearerTokenResolver;
+   20  
+   ..
+   22  
+   23  @Slf4j
+   24: public final class JwtAccessDeniedHandler implements AccessDeniedHandler {
+   25  
+   26      @Override
+   27      public void handle(HttpServletRequest request, HttpServletResponse response,
+   28              AccessDeniedException accessDeniedException) throws IOException, ServletException {
+   29:         log.warn("in JwtAccessDeniedHandler");
+   30          try {
+   31              IkashBearerTokenResolver ikashBearerTokenResolver = new IkashBearerTokenResolver();
+   32:             String jwt = ikashBearerTokenResolver.resolve(request);
+   33:             log.warn("Jwt: " + jwt);
+   34          } catch (Exception e) {
+   35:             log.error("JwtAccessDeniedHandler try get token error", e);
+   36          }
+   37          response.setStatus(HttpServletResponse.SC_OK);
+   ..
+   39          response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+   40  
+   41:         JwtRes<Object> res = new JwtRes<Object>();
+   42          res.setCode(HttpServletResponse.SC_UNAUTHORIZED);
+   43          res.setMsg(accessDeniedException.getMessage());
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\handler\JwtAuthenticationEntryPoint.java:
+   14  
+   15  import com.fasterxml.jackson.databind.ObjectMapper;
+   16: import com.twlife.ikash20.ikash20.res.base.JwtRes;
+   17  import com.twlife.ikash20.ikash20.resolver.IkashBearerTokenResolver;
+   18  
+   ..
+   20  
+   21  /**
+   22:  * (Jwt Sign驗證失敗會進這)
+   23   */
+   24  @Slf4j
+   25: public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+   26      @Override
+   27      public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+   28:         log.warn("in JwtAuthenticationEntryPoint"); // 此處Log需warn以上才會寫進log
+   29          try {
+   30              IkashBearerTokenResolver ikashBearerTokenResolver = new IkashBearerTokenResolver();
+   31:             String jwt = ikashBearerTokenResolver.resolve(request);
+   32:             log.warn("Jwt: " + jwt);
+   33          } catch (Exception e) {
+   34:             log.error("JwtAuthenticationEntryPoint try get token error", e);
+   35          }
+   36          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+   ..
+   39  
+   40          // Response
+   41:         JwtRes<Object> res = new JwtRes<Object>();
+   42          res.setCode(HttpServletResponse.SC_UNAUTHORIZED);
+   43          res.setMsg(authException.getMessage());
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\req\base\JwtReq.java:
+    6  
+    7  @Data
+    8: @Schema(description = "Jwt Request 基底類別")
+    9: public class JwtReq <T> {
+   10:     @Schema(description = "JWT", example = "XXX.YYY.ZZZ") 
+   11:     private String jwt;
+   12      @Schema(description = "Request 資料內容") 
+   13      private T reqBady;
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\res\base\JwtRes.java:
+    7  
+    8  @Data
+    9: @Schema(description = "Jwt Response 基底類別")
+   10: public class JwtRes<T> {
+   11  
+   12:     public JwtRes() {
+   13          timestamp = new Date();
+   14      }
+   ..
+   19      private T resBody;
+   20  
+   21:     private String jwt;
+   22  }
+   23  
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\resolver\IkashBearerTokenResolver.java:
+   21  import com.fasterxml.jackson.databind.ObjectMapper;
+   22  import com.nimbusds.jose.util.IOUtils;
+   23: import com.twlife.ikash20.ikash20.req.base.JwtReq;
+   24  
+   25  import lombok.extern.slf4j.Slf4j;
+   26  
+   27  /**
+   28:  * 自訂iKash JWT 獲取位置
+   29   * https://github.com/spring-projects/spring-security/blob/b28efbc4b8eec0f942aa1a1f7cfa3b8ee7884f42/oauth2/oauth2-resource-server/src/main/java/org/springframework/security/oauth2/server/resource/web/DefaultBearerTokenResolver.java#L39
+   30   */
+   ..
+   44  	public String resolve(final HttpServletRequest request) {
+   45          // 由Request body 取得 Token
+   46:         final String reqBodyJwt = resolveJwtFromReqBody(request);
+   47:         if (reqBodyJwt != null) {
+   48:             return reqBodyJwt;
+   49          }
+   50          // 由Header獲取Token
+   ..
+  143       * @return
+  144       */
+  145:     private String resolveJwtFromReqBody(HttpServletRequest request) {
+  146          if ("POST".equalsIgnoreCase(request.getMethod())) 
+  147          {
+  ...
+  149              try {
+  150                  reqString = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+  151:                 JwtReq req = new ObjectMapper().readValue(reqString, JwtReq.class);
+  152:                 if (req != null && req.getJwt() != null && req.getJwt() != "") {
+  153:                     return req.getJwt();
+  154                  }
+  155              } catch (IOException e) {
+  156:                 log.debug("IkashBearerTokenResolver.resolveJwtFromReqBody 嘗試由 Request body 取的 token 錯誤");
+  157                  e.printStackTrace();
+  158              }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\service\JwtService.java:
+   13  import org.springframework.security.core.GrantedAuthority;
+   14  import org.springframework.security.core.userdetails.UserDetails;
+   15: import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+   16: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   17: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   18: import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+   19: import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+   20: import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+   21: import org.springframework.security.oauth2.jwt.JwtClaimsSet.Builder;
+   22  import org.springframework.stereotype.Service;
+   23  
+   ..
+   35  
+   36  /**
+   37:  * 用於建立/驗證Json web token & 建立/管理Jwt 金鑰
+   38   */
+   39  @Slf4j
+   40  @Service
+   41: public class JwtService {
+   42      private static PrivateKey privateKey;
+   43      private static RSAPublicKey rsaPublicKey;
+   44  
+   45:     static final long EXPIRATIONTIME = 900_000;     // JWT過期時間為900秒，也就是15分鐘
+   46      @Value("${ikash.constant.env}")
+   47:     private static String appConfig_JWT_PRIVATE_KEY; // JWT_PRIVATE_KEY
+   48      @Value("${ikash.constant.env}")
+   49:     private static String appConfig_JWT_PUBLIC_KEY; // JWT_PUBLIC_KEY
+   50:     private static String jwtSubject = "iKash";
+   51  
+   52  
+   ..
+   54      private AppConfigDao appConfigDao;
+   55  
+   56:     public JwtService(){
+   57          try {
+   58:             log.info("從資料庫取出Jwt金鑰");
+   59              // TODO: 嘗試從資料庫取得Key
+   60:             AppConfigEntity privateKeyEntity = appConfigDao.getEnableConfigByKey(appConfig_JWT_PRIVATE_KEY);
+   61:             AppConfigEntity publicKeyEntity = appConfigDao.getEnableConfigByKey(appConfig_JWT_PUBLIC_KEY);
+   62  
+   63              privateKey = RsaUtil.getPrivateKeyFromString(privateKeyEntity.getConfigValue());
+   ..
+   65  
+   66          } catch (Exception ex) {
+   67:             log.error("JwtService: 取Rsa公私鑰失敗", ex);
+   68              //TODO: handle exception
+   69              // 建立新金鑰
+   ..
+   75  
+   76      /**
+   77:      * 產生JWT
+   78       * @param userDetails
+   79       * @return
+   ..
+   81      public String generateToken(UserDetails userDetails) {
+   82          Instant now = Instant.now();
+   83:         // 將使用者許可權資訊使用空格分割拼為字串，放到JWT的payload的scope欄位中，注意不要改變scope這個屬性，這是Spring Security OAuth2 JWT預設處理方式，在JWT解碼時需要讀取該欄位，轉為使用者的許可權資訊！
+   84          String scope = userDetails.getAuthorities().stream()
+   85                  .map(GrantedAuthority::getAuthority)
+   86                  .collect(Collectors.joining(" "));
+   87           
+   88:         JwtClaimsSet claims = JwtClaimsSet.builder()
+   89                  .issuer("self")
+   90                  .issuedAt(now)
+   ..
+   93                  .claim("scope", scope)
+   94                  .build();
+   95:         return this.jwtEncoder().encode(JwtEncoderParameters.from(claims)).getTokenValue();
+   96      }
+   97  
+   98:     public String renewToken(String jwt) {
+   99:         Map<String,Object> originalClaims = this.jwtDecoder().decode(jwt).getClaims();
+  100:         Builder jwtBuilder = JwtClaimsSet.builder();
+  101  
+  102          originalClaims.forEach((key,val) -> {
+  103:             jwtBuilder.claim(key, val);
+  104          });
+  105          Instant now = Instant.now();
+  106:         jwtBuilder.issuedAt(now).expiresAt(now.plusSeconds(EXPIRATIONTIME));
+  107  
+  108:         return this.jwtEncoder().encode(JwtEncoderParameters.from(jwtBuilder.build())).getTokenValue();
+  109      }
+  110  
+  ...
+  120  
+  121      /**
+  122:      * JWT解碼器，用於認證時的JWT解碼 
+  123       */
+  124:     public JwtDecoder jwtDecoder() {
+  125:         return NimbusJwtDecoder.withPublicKey(rsaPublicKey).build();
+  126      }
+  127  
+  128      /**
+  129:      * JWT編碼器，生成JWT
+  130       */
+  131:     public JwtEncoder jwtEncoder() {
+  132          JWK jwk = new RSAKey.Builder(rsaPublicKey).privateKey(privateKey).build();
+  133          JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+  134:         return new NimbusJwtEncoder(jwks);
+  135      }
+  136  }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\service\LoginService.java:
+   12  import org.springframework.security.core.authority.SimpleGrantedAuthority;
+   13  import org.springframework.security.core.userdetails.User;
+   14: import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+   15: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   16: import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+   17  import org.springframework.stereotype.Service;
+   18  
+   ..
+   20  public class LoginService {
+   21      @Autowired
+   22:     private JwtService jwtService;
+   23  
+   24      public String login(String userId, String pwd) {
+   ..
+   29          //用集合及一個helper class來取得user的擁有的role
+   30          Collection<? extends GrantedAuthority> authorities= null;
+   31:         return jwtService.generateToken(new User(userId, pwd, Collections.singletonList(new SimpleGrantedAuthority("app"))));
+   32          // //從使用者資訊儲存庫中獲取使用者資訊
+   33          // final UserDetails userDetails = springSecurityUserDetailsService.loadUserByUsername(loginInfo.getUsername());
+   34          // final String password = userDetails.getPassword();
+   35:         // //匹配密碼，匹配成功生成JWT令牌
+   36          // if (password.equals(loginInfo.getPassword())) {
+   37          //     return generateToken(userDetails);
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\util\JwtUtil.java:
+   20  @UtilityClass
+   21  @Slf4j
+   22: public class JwtUtil {
+   23  
+   24:     private static final String jwtSubject = "iKash";
+   25      private static final String CLAIM_KEY_USER_ID = "userid";
+   26  
+   ..
+   31  
+   32      /**
+   33:      * 依userId建立JWT
+   34       * @param privateKey 私鑰
+   35       * @param userId User Id
+   36       * @return
+   37       */
+   38:     public String generateJwt(PrivateKey privateKey,String userId){
+   39          Map<String, Object> claims = new HashMap<String,Object>(1);
+   40          claims.put(CLAIM_KEY_USER_ID, userId);
+   ..
+   46              new Date(System.currentTimeMillis()+ 30 * 60 * 1000);
+   47  
+   48:         String jwtToken = Jwts.builder()
+   49:                                 .setSubject(jwtSubject)
+   50                                  .setNotBefore(now)
+   51                                  .setIssuedAt(now)
+   ..
+   54                                  .signWith(privateKey)
+   55                                  .compact();
+   56:         return jwtToken;
+   57      }
+   58  
+   59      /**
+   60:      * 驗證 JWT
+   61       * @param publicKey 公鑰
+   62:      * @param jwt Token
+   63       * @return
+   64       */
+   65:     public boolean validateJwt(PublicKey publicKey, String jwt){
+   66          try {
+   67:             Jws<Claims> claims =Jwts.parserBuilder()
+   68:                                 .requireSubject(jwtSubject)
+   69                                  .setSigningKey(publicKey)
+   70                                  .build()
+   71:                                 .parseClaimsJws(jwt);
+   72              return true;
+   73          } catch (Exception ex) {
+   74:             log.info("JWT驗證失敗:" + jwt, ex);
+   75          }
+   76          return false;
+   ..
+   80  
+   81      /**
+   82:      * 取得jwt內帶的user id
+   83:      * @param jwt
+   84       * @return
+   85       */
+   86:     public String getUserNameFromToken(PublicKey publicKey, String jwt) {
+   87:         String userid = Jwts.parserBuilder()
+   88:                             // 此處不重複做jwt驗證
+   89:                             //.requireSubject(jwtSubject)
+   90                              .setSigningKey(publicKey)
+   91                              .build()
+   92:                             .parseClaimsJws(jwt)
+   93                              .getBody()
+   94                              .get(CLAIM_KEY_USER_ID, String.class);
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\util\RsaUtil.java:
+   11  
+   12  import org.springframework.data.util.Pair;
+   13: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   14: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   15: import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+   16: import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+   17  
+   18  import com.nimbusds.jose.jwk.JWK;
+
+238 matches across 15 files
+
+
+Searching 32 files for "oath2"
+
+0 matches
+
+Searching 32 files for "oauth2"
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\common\JwtRenewResponseBodyAdvice.java:
+   10  import org.springframework.security.core.Authentication;
+   11  import org.springframework.security.core.context.SecurityContextHolder;
+   12: import org.springframework.security.oauth2.jwt.Jwt;
+   13  import org.springframework.web.bind.annotation.ControllerAdvice;
+   14  import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\config\WebSecurityConfig.java:
+   14  import com.twlife.ikash20.ikash20.service.JwtService;
+   15  
+   16: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   17: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   18: import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+   19: import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+   20  
+   21  import lombok.extern.slf4j.Slf4j;
+   ..
+   60              // .csrf((csrf) -> csrf.ignoringAntMatchers("/api/login"))
+   61              //設定認證方式為JWT，並且設定了一個JWT認證裝換器，用於去掉解析許可權時的SCOOP_字首
+   62:             .oauth2ResourceServer(oauth2 ->
+   63:                 oauth2
+   64                      
+   65                      // 設定認證失敗或者無許可權時的處理器-認證失敗
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\resolver\IkashBearerTokenResolver.java:
+   11  import org.springframework.http.HttpHeaders;
+   12  import org.springframework.http.MediaType;
+   13: import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+   14: import org.springframework.security.oauth2.server.resource.BearerTokenError;
+   15: import org.springframework.security.oauth2.server.resource.BearerTokenErrors;
+   16: import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+   17  import org.springframework.util.StringUtils;
+   18  import org.springframework.web.util.ContentCachingRequestWrapper;
+   ..
+   27  /**
+   28   * 自訂iKash JWT 獲取位置
+   29:  * https://github.com/spring-projects/spring-security/blob/b28efbc4b8eec0f942aa1a1f7cfa3b8ee7884f42/oauth2/oauth2-resource-server/src/main/java/org/springframework/security/oauth2/server/resource/web/DefaultBearerTokenResolver.java#L39
+   30   */
+   31  @Slf4j
+   ..
+   56  				final BearerTokenError error = BearerTokenErrors
+   57  						.invalidRequest("Found multiple bearer tokens in the request");
+   58: 				throw new OAuth2AuthenticationException(error);
+   59  			}
+   60  			return authorizationHeaderToken;
+   ..
+  109  		if (!matcher.matches()) {
+  110  			BearerTokenError error = BearerTokenErrors.invalidToken("Bearer token is malformed");
+  111: 			throw new OAuth2AuthenticationException(error);
+  112  		}
+  113  		return matcher.group("token");
+  ...
+  123  		}
+  124  		BearerTokenError error = BearerTokenErrors.invalidRequest("Found multiple bearer tokens in the request");
+  125: 		throw new OAuth2AuthenticationException(error);
+  126  	}
+  127  
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\service\JwtService.java:
+   13  import org.springframework.security.core.GrantedAuthority;
+   14  import org.springframework.security.core.userdetails.UserDetails;
+   15: import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+   16: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   17: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   18: import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+   19: import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+   20: import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+   21: import org.springframework.security.oauth2.jwt.JwtClaimsSet.Builder;
+   22  import org.springframework.stereotype.Service;
+   23  
+   ..
+   81      public String generateToken(UserDetails userDetails) {
+   82          Instant now = Instant.now();
+   83:         // 將使用者許可權資訊使用空格分割拼為字串，放到JWT的payload的scope欄位中，注意不要改變scope這個屬性，這是Spring Security OAuth2 JWT預設處理方式，在JWT解碼時需要讀取該欄位，轉為使用者的許可權資訊！
+   84          String scope = userDetails.getAuthorities().stream()
+   85                  .map(GrantedAuthority::getAuthority)
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\service\LoginService.java:
+   12  import org.springframework.security.core.authority.SimpleGrantedAuthority;
+   13  import org.springframework.security.core.userdetails.User;
+   14: import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+   15: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   16: import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+   17  import org.springframework.stereotype.Service;
+   18  
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\util\RsaUtil.java:
+   11  
+   12  import org.springframework.data.util.Pair;
+   13: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   14: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   15: import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+   16: import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+   17  
+   18  import com.nimbusds.jose.jwk.JWK;
+
+34 matches across 6 files
+
+
+
+
+
+jwt
+```
+Searching 32 files for "Filter"
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\config\WebConfig.java:
+    1  package com.twlife.ikash20.ikash20.config;
+    2  
+    3: import org.springframework.boot.web.servlet.FilterRegistrationBean;
+    4  import org.springframework.context.annotation.Bean;
+    5  import org.springframework.context.annotation.Configuration;
+    6  
+    7: import com.twlife.ikash20.ikash20.filter.LogRequestIdFilter;
+    8: import com.twlife.ikash20.ikash20.filter.extension.ContentCachingFilter;
+    9  
+   10  import org.springframework.core.Ordered;
+   ..
+   19       */
+   20      @Bean
+   21:     public FilterRegistrationBean<LogRequestIdFilter> logRequestIdFilter()
+   22      {
+   23:         FilterRegistrationBean<LogRequestIdFilter> registrationBean = new FilterRegistrationBean<>();
+   24:         LogRequestIdFilter filter = new LogRequestIdFilter();
+   25  
+   26:         registrationBean.setFilter(filter);
+   27          registrationBean.setOrder(-101);
+   28          return registrationBean;
+   ..
+   30  
+   31      /**
+   32:      * 綁定快取request Filter，讓Filter內可以重複getReader、getInputStream
+   33       * https://www.baeldung.com/spring-reading-httpservletrequest-multiple-times
+   34       * https://stackoverflow.com/questions/23080668/spring-injection-on-current-context-for-autowire-doesnt-work
+   35       * 
+   36:      * 此Filter需再IkashBearerTokenResolver執行前執行，故 Oder需小於-100
+   37       */
+   38      @Bean
+   39:     public FilterRegistrationBean<ContentCachingFilter> contentCachingFilter()
+   40      {
+   41:         FilterRegistrationBean<ContentCachingFilter> registrationBean = new FilterRegistrationBean<>();
+   42:         ContentCachingFilter filter = new ContentCachingFilter();
+   43  
+   44:         registrationBean.setFilter(filter);
+   45          registrationBean.setOrder(-100);
+   46          return registrationBean;
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\config\WebSecurityConfig.java:
+    7  import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+    8  import org.springframework.security.config.http.SessionCreationPolicy;
+    9: import org.springframework.security.web.SecurityFilterChain;
+   10  
+   11  import com.twlife.ikash20.ikash20.handler.JwtAccessDeniedHandler;
+   ..
+   37  
+   38      @Bean
+   39:     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+   40  
+   41          http
+   ..
+   86              
+   87              ;
+   88:          //根據設定生成SecurityFilterChain物件
+   89          return http.build();
+   90      }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\filter\extension\CachedBodyHttpServletRequest.java:
+    1: package com.twlife.ikash20.ikash20.filter.extension;
+    2  
+    3  import java.io.BufferedReader;
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\filter\extension\CachedBodyServletInputStream.java:
+    1: package com.twlife.ikash20.ikash20.filter.extension;
+    2  
+    3  import java.io.ByteArrayInputStream;
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\filter\extension\ContentCachingFilter.java:
+    1: package com.twlife.ikash20.ikash20.filter.extension;
+    2  
+    3  import java.io.IOException;
+    4  
+    5: import javax.servlet.FilterChain;
+    6  import javax.servlet.ServletException;
+    7: import javax.servlet.annotation.WebFilter;
+    8  import javax.servlet.http.HttpServletRequest;
+    9  import javax.servlet.http.HttpServletResponse;
+   ..
+   12  import org.springframework.core.annotation.Order;
+   13  import org.springframework.stereotype.Component;
+   14: import org.springframework.web.filter.OncePerRequestFilter;
+   15  
+   16  /**
+   17:  * 快取request，讓Filter內可以重複getReader、getInputStream
+   18   * https://www.baeldung.com/spring-reading-httpservletrequest-multiple-times
+   19   * https://stackoverflow.com/questions/23080668/spring-injection-on-current-context-for-autowire-doesnt-work
+   20   */
+   21: public class ContentCachingFilter extends OncePerRequestFilter {
+   22  
+   23      @Override
+   24:     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
+   25:         System.out.println("IN  ContentCachingFilter ");
+   26          CachedBodyHttpServletRequest cachedBodyHttpServletRequest = new CachedBodyHttpServletRequest(httpServletRequest);
+   27:         filterChain.doFilter(cachedBodyHttpServletRequest, httpServletResponse);
+   28      }
+   29  
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\filter\LogRequestIdFilter.java:
+    1: package com.twlife.ikash20.ikash20.filter;
+    2  
+    3  import java.io.IOException;
+    4  
+    5: import javax.servlet.FilterChain;
+    6  import javax.servlet.ServletException;
+    7  import javax.servlet.http.HttpServletRequest;
+    .
+   12  import org.springframework.core.annotation.Order;
+   13  import org.springframework.stereotype.Component;
+   14: import org.springframework.web.filter.OncePerRequestFilter;
+   15  
+   16  import com.twlife.ikash20.ikash20.util.RequestIdUtil;
+   ..
+   25   */
+   26  @Slf4j
+   27: public class LogRequestIdFilter extends OncePerRequestFilter { /** 繼承OncePerRequestFilter，確保request只會被filter過濾一次 */ 
+   28  
+   29      private final String RequestIdResponseHeader = "Request_Token";
+   ..
+   31  
+   32      @Override
+   33:     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain)
+   34          throws ServletException, IOException {
+   35              try {
+   ..
+   43                      log.error("RequestIdResponseHeader的值不存在");
+   44                  }
+   45:                 filterChain.doFilter(request, response);
+   46              } finally {
+   47                  MDC.remove(RequestIdRequestIdKey);
+
+63 matches across 6 files
+
+
+Searching 32 files for "OAuth2"
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\common\JwtRenewResponseBodyAdvice.java:
+   10  import org.springframework.security.core.Authentication;
+   11  import org.springframework.security.core.context.SecurityContextHolder;
+   12:												
+   13  import org.springframework.web.bind.annotation.ControllerAdvice;
+   14  import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\config\WebSecurityConfig.java:
+   14  import com.twlife.ikash20.ikash20.service.JwtService;
+   15  
+   16: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   17: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   18: import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+   19: import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+   20  
+   21  import lombok.extern.slf4j.Slf4j;
+   ..
+   60              // .csrf((csrf) -> csrf.ignoringAntMatchers("/api/login"))
+   61              //設定認證方式為JWT，並且設定了一個JWT認證裝換器，用於去掉解析許可權時的SCOOP_字首
+   62:             .oauth2ResourceServer(oauth2 ->
+   63:                 oauth2
+   64                      
+   65                      // 設定認證失敗或者無許可權時的處理器-認證失敗
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\resolver\IkashBearerTokenResolver.java:
+   11  import org.springframework.http.HttpHeaders;
+   12  import org.springframework.http.MediaType;
+   13: import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+   14: import org.springframework.security.oauth2.server.resource.BearerTokenError;
+   15: import org.springframework.security.oauth2.server.resource.BearerTokenErrors;
+   16: import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+   17  import org.springframework.util.StringUtils;
+   18  import org.springframework.web.util.ContentCachingRequestWrapper;
+   ..
+   27  /**
+   28   * 自訂iKash JWT 獲取位置
+   29:  * https://github.com/spring-projects/spring-security/blob/b28efbc4b8eec0f942aa1a1f7cfa3b8ee7884f42/oauth2/oauth2-resource-server/src/main/java/org/springframework/security/oauth2/server/resource/web/DefaultBearerTokenResolver.java#L39
+   30   */
+   31  @Slf4j
+   ..
+   56  				final BearerTokenError error = BearerTokenErrors
+   57  						.invalidRequest("Found multiple bearer tokens in the request");
+   58: 				throw new OAuth2AuthenticationException(error);
+   59  			}
+   60  			return authorizationHeaderToken;
+   ..
+  109  		if (!matcher.matches()) {
+  110  			BearerTokenError error = BearerTokenErrors.invalidToken("Bearer token is malformed");
+  111: 			throw new OAuth2AuthenticationException(error);
+  112  		}
+  113  		return matcher.group("token");
+  ...
+  123  		}
+  124  		BearerTokenError error = BearerTokenErrors.invalidRequest("Found multiple bearer tokens in the request");
+  125: 		throw new OAuth2AuthenticationException(error);
+  126  	}
+  127  
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\service\JwtService.java:
+   13  import org.springframework.security.core.GrantedAuthority;
+   14  import org.springframework.security.core.userdetails.UserDetails;
+   15: import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+   16: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   17: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   18: import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+   19: import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+   20: import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+   21: import org.springframework.security.oauth2.jwt.JwtClaimsSet.Builder;
+   22  import org.springframework.stereotype.Service;
+   23  
+   ..
+   81      public String generateToken(UserDetails userDetails) {
+   82          Instant now = Instant.now();
+   83:         // 將使用者許可權資訊使用空格分割拼為字串，放到JWT的payload的scope欄位中，注意不要改變scope這個屬性，這是Spring Security OAuth2 JWT預設處理方式，在JWT解碼時需要讀取該欄位，轉為使用者的許可權資訊！
+   84          String scope = userDetails.getAuthorities().stream()
+   85                  .map(GrantedAuthority::getAuthority)
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\service\LoginService.java:
+   12  import org.springframework.security.core.authority.SimpleGrantedAuthority;
+   13  import org.springframework.security.core.userdetails.User;
+   14: import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+   15: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   16: import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+   17  import org.springframework.stereotype.Service;
+   18  
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\util\RsaUtil.java:
+   11  
+   12  import org.springframework.data.util.Pair;
+   13: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   14: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   15: import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+   16: import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+   17  
+   18  import com.nimbusds.jose.jwk.JWK;
+
+34 matches across 6 files
+
+
+Searching 32 files for "jwt"
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\common\JwtRenewResponseBodyAdvice.java:
+   10  import org.springframework.security.core.Authentication;
+   11  import org.springframework.security.core.context.SecurityContextHolder;
+   12: import org.springframework.security.oauth2.jwt.Jwt;
+   13  import org.springframework.web.bind.annotation.ControllerAdvice;
+   14  import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+   15  
+   16: import com.twlife.ikash20.ikash20.res.base.JwtRes;
+   17: import com.twlife.ikash20.ikash20.service.JwtService;
+   18  
+   19  import lombok.extern.slf4j.Slf4j;
+   20  
+   21  /**
+   22:  * 用於產生JwtRes內Renew的Jwt
+   23   */
+   24  @Slf4j
+   25  @ControllerAdvice
+   26: public class JwtRenewResponseBodyAdvice implements ResponseBodyAdvice<Object> {
+   27  
+   28      @Resource
+   29:     private JwtService jwtService;
+   30      /**
+   31:      * 用於產生JwtRes內Renew的Jwt
+   32       * @param body Response的資料
+   33       * @param returnType Response資料類型
+   ..
+   42      public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
+   43              Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
+   44:         if (body instanceof JwtRes) {
+   45              try {
+   46:                 JwtRes<Object> res = (JwtRes<Object>)body;
+   47                  Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+   48:                 // 卻認為已經Jwt驗證過
+   49                  if (authentication.getCredentials() != "") {
+   50:                     Jwt jwtCredentials = (Jwt)authentication.getCredentials();
+   51:                     // 產生新JWT
+   52:                     String newJwt = jwtService.renewToken(jwtCredentials.getTokenValue());
+   53:                     res.setJwt(newJwt);
+   54                  }
+   55              } catch (Exception e) {
+   56:                 log.warn("JwtRenewResponseBodyAdvice.beforeBodyWrite:", e);
+   57              }
+   58          }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\config\WebSecurityConfig.java:
+    9  import org.springframework.security.web.SecurityFilterChain;
+   10  
+   11: import com.twlife.ikash20.ikash20.handler.JwtAccessDeniedHandler;
+   12: import com.twlife.ikash20.ikash20.handler.JwtAuthenticationEntryPoint;
+   13  import com.twlife.ikash20.ikash20.resolver.IkashBearerTokenResolver;
+   14: import com.twlife.ikash20.ikash20.service.JwtService;
+   15  
+   16: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   17: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   18: import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+   19: import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+   20  
+   21  import lombok.extern.slf4j.Slf4j;
+   ..
+   24  
+   25  /**
+   26:  * 設定JWT 做驗證
+   27   * https://spring.io/blog/2022/02/21/spring-security-without-the-websecurityconfigureradapter
+   28   */
+   ..
+   34  
+   35      @Autowired
+   36:     private JwtService jwtService;
+   37  
+   38      @Bean
+   ..
+   55                      .anyRequest().authenticated()
+   56              )
+   57:             //採用JWT認證無需session保持，所以禁用掉session管理器
+   58              .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+   59              // //login介面可能來自其他站點，所以對login不做csrf防護
+   60              // .csrf((csrf) -> csrf.ignoringAntMatchers("/api/login"))
+   61:             //設定認證方式為JWT，並且設定了一個JWT認證裝換器，用於去掉解析許可權時的SCOOP_字首
+   62              .oauth2ResourceServer(oauth2 ->
+   63                  oauth2
+   64                      
+   65                      // 設定認證失敗或者無許可權時的處理器-認證失敗
+   66:                     .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
+   67                      // 設定認證失敗或者無許可權時的處理器-認證成功後無權限訪問
+   68:                     .accessDeniedHandler(new JwtAccessDeniedHandler())
+   69:                     // jwt 來源加Request body    
+   70:                     // https://medium.com/swlh/stateless-jwt-authentication-with-spring-boot-a-better-approach-1f5dbae6c30f
+   71                      .bearerTokenResolver(new IkashBearerTokenResolver())
+   72:                     .jwt()
+   73:                     // 將JWT資料轉換為JwtAuthenticationToken
+   74:                     .jwtAuthenticationConverter(converterJwtAuthentication())
+   75  
+   76              )
+   ..
+   91  
+   92      /**
+   93:      * JWT解碼器，用於認證時的JWT解碼 
+   94       */
+   95      @Bean
+   96:     JwtDecoder jwtDecoder() {
+   97:         return jwtService.jwtDecoder();
+   98      }
+   99  
+  100      /**
+  101:      * JWT編碼器，生成JWT
+  102       */
+  103      @Bean
+  104:     JwtEncoder jwtEncoder() {
+  105:         return jwtService.jwtEncoder();
+  106:         // JWK jwk = new RSAKey.Builder(jwtService.getRsaPublicKey()).privateKey(jwtService.getPrivateKey()).build();
+  107          // JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+  108:         // return new NimbusJwtEncoder(jwks);
+  109      }
+  110      
+  111  
+  112      /**
+  113:      * JWT認證解碼時，去掉Spring Security對許可權附帶的預設字首SCOOP_
+  114       */
+  115      @Bean
+  116:     JwtAuthenticationConverter converterJwtAuthentication() {
+  117:         final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+  118:         jwtGrantedAuthoritiesConverter.setAuthorityPrefix("");
+  119:         final JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+  120:         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
+  121:         return jwtAuthenticationConverter;
+  122      }
+  123  }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\controller\devsample\GetEnv.java:
+   13  
+   14  import com.twlife.ikash20.ikash20.entity.AppConfigEntity;
+   15: import com.twlife.ikash20.ikash20.req.base.JwtReq;
+   16: import com.twlife.ikash20.ikash20.res.base.JwtRes;
+   17  import com.twlife.ikash20.ikash20.service.LoginService;
+   18  
+   ..
+   66          log.warn("startTime:" + startTime);
+   67  
+   68:         String jwt = loginService.login("userId", "pwd");
+   69  
+   70          long endTime = System.nanoTime();
+   ..
+   74  
+   75  
+   76:         return jwt;
+   77      }
+   78  
+   ..
+   80      @RequestMapping(value = "GetEnv3", method = RequestMethod.POST) /** 同檔案名稱，且一定要限制取Http Method (一般情況下請設為POST) */ 
+   81      @Operation(summary = "Dev Test")
+   82:     public JwtRes<String> getEnv3(@RequestBody final JwtReq<AppConfigEntity> req) {
+   83          
+   84:         String jwt = loginService.login("userId", "pwd");
+   85          long startTime = System.nanoTime();
+   86        
+   87          long endTime = System.nanoTime();
+   88          log.warn("endTime:" + endTime);
+   89:         JwtRes<String> res = new JwtRes<String>();
+   90          res.setResBody("That took " + (endTime - startTime) + " milliseconds");
+   91  
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\controller\devsample\TempLogin.java:
+   35          log.warn("startTime:" + startTime);
+   36  
+   37:         String jwt = loginService.login("userId", "pwd");
+   38  
+   39          long endTime = System.nanoTime();
+   ..
+   43  
+   44  
+   45:         return jwt;
+   46      }
+   47  }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\controller\login\login.java:
+    7  import org.springframework.web.bind.annotation.RestController;
+    8  
+    9: import com.twlife.ikash20.ikash20.req.base.JwtReq;
+   10: import com.twlife.ikash20.ikash20.res.base.JwtRes;
+   11  import com.twlife.ikash20.ikash20.service.LoginService;
+   12  
+   ..
+   27      @RequestMapping(value = "login", method = RequestMethod.POST) /** 同檔案名稱，且一定要限制取Http Method (一般情況下請設為POST) */ 
+   28      @Operation(summary = "登入")
+   29:     public JwtRes<Object> login(@RequestBody final JwtReq<Object> req) {
+   30         // TODO: 待補上真的登入邏輯
+   31:         String jwt = loginService.login("userId", "pwd");
+   32  
+   33:         JwtRes<Object> res = new JwtRes<>();
+   34:         res.setJwt(jwt);
+   35          return res;
+   36      }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\handler\GlobalExceptionHandler.java:
+   18  import org.springframework.web.servlet.function.ServerResponse;
+   19  
+   20: import com.twlife.ikash20.ikash20.res.base.JwtRes;
+   21  
+   22  import lombok.extern.slf4j.Slf4j;
+   ..
+   39          log.error("GlobalExceptionHandler.globalExceptionHandler", ex.getMessage());
+   40          ServerResponse.ok();
+   41:         JwtRes<Object> res = new JwtRes<Object>();
+   42          res.setCode(getStatus(request).value());
+   43          res.setMsg(ex.getMessage());
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\handler\JwtAccessDeniedHandler.java:
+   16  import com.fasterxml.jackson.databind.ObjectMapper;
+   17  
+   18: import com.twlife.ikash20.ikash20.res.base.JwtRes;
+   19  import com.twlife.ikash20.ikash20.resolver.IkashBearerTokenResolver;
+   20  
+   ..
+   22  
+   23  @Slf4j
+   24: public final class JwtAccessDeniedHandler implements AccessDeniedHandler {
+   25  
+   26      @Override
+   27      public void handle(HttpServletRequest request, HttpServletResponse response,
+   28              AccessDeniedException accessDeniedException) throws IOException, ServletException {
+   29:         log.warn("in JwtAccessDeniedHandler");
+   30          try {
+   31              IkashBearerTokenResolver ikashBearerTokenResolver = new IkashBearerTokenResolver();
+   32:             String jwt = ikashBearerTokenResolver.resolve(request);
+   33:             log.warn("Jwt: " + jwt);
+   34          } catch (Exception e) {
+   35:             log.error("JwtAccessDeniedHandler try get token error", e);
+   36          }
+   37          response.setStatus(HttpServletResponse.SC_OK);
+   ..
+   39          response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+   40  
+   41:         JwtRes<Object> res = new JwtRes<Object>();
+   42          res.setCode(HttpServletResponse.SC_UNAUTHORIZED);
+   43          res.setMsg(accessDeniedException.getMessage());
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\handler\JwtAuthenticationEntryPoint.java:
+   14  
+   15  import com.fasterxml.jackson.databind.ObjectMapper;
+   16: import com.twlife.ikash20.ikash20.res.base.JwtRes;
+   17  import com.twlife.ikash20.ikash20.resolver.IkashBearerTokenResolver;
+   18  
+   ..
+   20  
+   21  /**
+   22:  * (Jwt Sign驗證失敗會進這)
+   23   */
+   24  @Slf4j
+   25: public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+   26      @Override
+   27      public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+   28:         log.warn("in JwtAuthenticationEntryPoint"); // 此處Log需warn以上才會寫進log
+   29          try {
+   30              IkashBearerTokenResolver ikashBearerTokenResolver = new IkashBearerTokenResolver();
+   31:             String jwt = ikashBearerTokenResolver.resolve(request);
+   32:             log.warn("Jwt: " + jwt);
+   33          } catch (Exception e) {
+   34:             log.error("JwtAuthenticationEntryPoint try get token error", e);
+   35          }
+   36          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+   ..
+   39  
+   40          // Response
+   41:         JwtRes<Object> res = new JwtRes<Object>();
+   42          res.setCode(HttpServletResponse.SC_UNAUTHORIZED);
+   43          res.setMsg(authException.getMessage());
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\req\base\JwtReq.java:
+    6  
+    7  @Data
+    8: @Schema(description = "Jwt Request 基底類別")
+    9: public class JwtReq <T> {
+   10:     @Schema(description = "JWT", example = "XXX.YYY.ZZZ") 
+   11:     private String jwt;
+   12      @Schema(description = "Request 資料內容") 
+   13      private T reqBady;
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\res\base\JwtRes.java:
+    7  
+    8  @Data
+    9: @Schema(description = "Jwt Response 基底類別")
+   10: public class JwtRes<T> {
+   11  
+   12:     public JwtRes() {
+   13          timestamp = new Date();
+   14      }
+   ..
+   19      private T resBody;
+   20  
+   21:     private String jwt;
+   22  }
+   23  
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\resolver\IkashBearerTokenResolver.java:
+   21  import com.fasterxml.jackson.databind.ObjectMapper;
+   22  import com.nimbusds.jose.util.IOUtils;
+   23: import com.twlife.ikash20.ikash20.req.base.JwtReq;
+   24  
+   25  import lombok.extern.slf4j.Slf4j;
+   26  
+   27  /**
+   28:  * 自訂iKash JWT 獲取位置
+   29   * https://github.com/spring-projects/spring-security/blob/b28efbc4b8eec0f942aa1a1f7cfa3b8ee7884f42/oauth2/oauth2-resource-server/src/main/java/org/springframework/security/oauth2/server/resource/web/DefaultBearerTokenResolver.java#L39
+   30   */
+   ..
+   44  	public String resolve(final HttpServletRequest request) {
+   45          // 由Request body 取得 Token
+   46:         final String reqBodyJwt = resolveJwtFromReqBody(request);
+   47:         if (reqBodyJwt != null) {
+   48:             return reqBodyJwt;
+   49          }
+   50          // 由Header獲取Token
+   ..
+  143       * @return
+  144       */
+  145:     private String resolveJwtFromReqBody(HttpServletRequest request) {
+  146          if ("POST".equalsIgnoreCase(request.getMethod())) 
+  147          {
+  ...
+  149              try {
+  150                  reqString = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+  151:                 JwtReq req = new ObjectMapper().readValue(reqString, JwtReq.class);
+  152:                 if (req != null && req.getJwt() != null && req.getJwt() != "") {
+  153:                     return req.getJwt();
+  154                  }
+  155              } catch (IOException e) {
+  156:                 log.debug("IkashBearerTokenResolver.resolveJwtFromReqBody 嘗試由 Request body 取的 token 錯誤");
+  157                  e.printStackTrace();
+  158              }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\service\JwtService.java:
+   13  import org.springframework.security.core.GrantedAuthority;
+   14  import org.springframework.security.core.userdetails.UserDetails;
+   15: import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+   16: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   17: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   18: import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+   19: import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+   20: import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+   21: import org.springframework.security.oauth2.jwt.JwtClaimsSet.Builder;
+   22  import org.springframework.stereotype.Service;
+   23  
+   ..
+   35  
+   36  /**
+   37:  * 用於建立/驗證Json web token & 建立/管理Jwt 金鑰
+   38   */
+   39  @Slf4j
+   40  @Service
+   41: public class JwtService {
+   42      private static PrivateKey privateKey;
+   43      private static RSAPublicKey rsaPublicKey;
+   44  
+   45:     static final long EXPIRATIONTIME = 900_000;     // JWT過期時間為900秒，也就是15分鐘
+   46      @Value("${ikash.constant.env}")
+   47:     private static String appConfig_JWT_PRIVATE_KEY; // JWT_PRIVATE_KEY
+   48      @Value("${ikash.constant.env}")
+   49:     private static String appConfig_JWT_PUBLIC_KEY; // JWT_PUBLIC_KEY
+   50:     private static String jwtSubject = "iKash";
+   51  
+   52  
+   ..
+   54      private AppConfigDao appConfigDao;
+   55  
+   56:     public JwtService(){
+   57          try {
+   58:             log.info("從資料庫取出Jwt金鑰");
+   59              // TODO: 嘗試從資料庫取得Key
+   60:             AppConfigEntity privateKeyEntity = appConfigDao.getEnableConfigByKey(appConfig_JWT_PRIVATE_KEY);
+   61:             AppConfigEntity publicKeyEntity = appConfigDao.getEnableConfigByKey(appConfig_JWT_PUBLIC_KEY);
+   62  
+   63              privateKey = RsaUtil.getPrivateKeyFromString(privateKeyEntity.getConfigValue());
+   ..
+   65  
+   66          } catch (Exception ex) {
+   67:             log.error("JwtService: 取Rsa公私鑰失敗", ex);
+   68              //TODO: handle exception
+   69              // 建立新金鑰
+   ..
+   75  
+   76      /**
+   77:      * 產生JWT
+   78       * @param userDetails
+   79       * @return
+   ..
+   81      public String generateToken(UserDetails userDetails) {
+   82          Instant now = Instant.now();
+   83:         // 將使用者許可權資訊使用空格分割拼為字串，放到JWT的payload的scope欄位中，注意不要改變scope這個屬性，這是Spring Security OAuth2 JWT預設處理方式，在JWT解碼時需要讀取該欄位，轉為使用者的許可權資訊！
+   84          String scope = userDetails.getAuthorities().stream()
+   85                  .map(GrantedAuthority::getAuthority)
+   86                  .collect(Collectors.joining(" "));
+   87           
+   88:         JwtClaimsSet claims = JwtClaimsSet.builder()
+   89                  .issuer("self")
+   90                  .issuedAt(now)
+   ..
+   93                  .claim("scope", scope)
+   94                  .build();
+   95:         return this.jwtEncoder().encode(JwtEncoderParameters.from(claims)).getTokenValue();
+   96      }
+   97  
+   98:     public String renewToken(String jwt) {
+   99:         Map<String,Object> originalClaims = this.jwtDecoder().decode(jwt).getClaims();
+  100:         Builder jwtBuilder = JwtClaimsSet.builder();
+  101  
+  102          originalClaims.forEach((key,val) -> {
+  103:             jwtBuilder.claim(key, val);
+  104          });
+  105          Instant now = Instant.now();
+  106:         jwtBuilder.issuedAt(now).expiresAt(now.plusSeconds(EXPIRATIONTIME));
+  107  
+  108:         return this.jwtEncoder().encode(JwtEncoderParameters.from(jwtBuilder.build())).getTokenValue();
+  109      }
+  110  
+  ...
+  120  
+  121      /**
+  122:      * JWT解碼器，用於認證時的JWT解碼 
+  123       */
+  124:     public JwtDecoder jwtDecoder() {
+  125:         return NimbusJwtDecoder.withPublicKey(rsaPublicKey).build();
+  126      }
+  127  
+  128      /**
+  129:      * JWT編碼器，生成JWT
+  130       */
+  131:     public JwtEncoder jwtEncoder() {
+  132          JWK jwk = new RSAKey.Builder(rsaPublicKey).privateKey(privateKey).build();
+  133          JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+  134:         return new NimbusJwtEncoder(jwks);
+  135      }
+  136  }
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\service\LoginService.java:
+   12  import org.springframework.security.core.authority.SimpleGrantedAuthority;
+   13  import org.springframework.security.core.userdetails.User;
+   14: import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+   15: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   16: import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+   17  import org.springframework.stereotype.Service;
+   18  
+   ..
+   20  public class LoginService {
+   21      @Autowired
+   22:     private JwtService jwtService;
+   23  
+   24      public String login(String userId, String pwd) {
+   ..
+   29          //用集合及一個helper class來取得user的擁有的role
+   30          Collection<? extends GrantedAuthority> authorities= null;
+   31:         return jwtService.generateToken(new User(userId, pwd, Collections.singletonList(new SimpleGrantedAuthority("app"))));
+   32          // //從使用者資訊儲存庫中獲取使用者資訊
+   33          // final UserDetails userDetails = springSecurityUserDetailsService.loadUserByUsername(loginInfo.getUsername());
+   34          // final String password = userDetails.getPassword();
+   35:         // //匹配密碼，匹配成功生成JWT令牌
+   36          // if (password.equals(loginInfo.getPassword())) {
+   37          //     return generateToken(userDetails);
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\util\JwtUtil.java:
+   20  @UtilityClass
+   21  @Slf4j
+   22: public class JwtUtil {
+   23  
+   24:     private static final String jwtSubject = "iKash";
+   25      private static final String CLAIM_KEY_USER_ID = "userid";
+   26  
+   ..
+   31  
+   32      /**
+   33:      * 依userId建立JWT
+   34       * @param privateKey 私鑰
+   35       * @param userId User Id
+   36       * @return
+   37       */
+   38:     public String generateJwt(PrivateKey privateKey,String userId){
+   39          Map<String, Object> claims = new HashMap<String,Object>(1);
+   40          claims.put(CLAIM_KEY_USER_ID, userId);
+   ..
+   46              new Date(System.currentTimeMillis()+ 30 * 60 * 1000);
+   47  
+   48:         String jwtToken = Jwts.builder()
+   49:                                 .setSubject(jwtSubject)
+   50                                  .setNotBefore(now)
+   51                                  .setIssuedAt(now)
+   ..
+   54                                  .signWith(privateKey)
+   55                                  .compact();
+   56:         return jwtToken;
+   57      }
+   58  
+   59      /**
+   60:      * 驗證 JWT
+   61       * @param publicKey 公鑰
+   62:      * @param jwt Token
+   63       * @return
+   64       */
+   65:     public boolean validateJwt(PublicKey publicKey, String jwt){
+   66          try {
+   67:             Jws<Claims> claims =Jwts.parserBuilder()
+   68:                                 .requireSubject(jwtSubject)
+   69                                  .setSigningKey(publicKey)
+   70                                  .build()
+   71:                                 .parseClaimsJws(jwt);
+   72              return true;
+   73          } catch (Exception ex) {
+   74:             log.info("JWT驗證失敗:" + jwt, ex);
+   75          }
+   76          return false;
+   ..
+   80  
+   81      /**
+   82:      * 取得jwt內帶的user id
+   83:      * @param jwt
+   84       * @return
+   85       */
+   86:     public String getUserNameFromToken(PublicKey publicKey, String jwt) {
+   87:         String userid = Jwts.parserBuilder()
+   88:                             // 此處不重複做jwt驗證
+   89:                             //.requireSubject(jwtSubject)
+   90                              .setSigningKey(publicKey)
+   91                              .build()
+   92:                             .parseClaimsJws(jwt)
+   93                              .getBody()
+   94                              .get(CLAIM_KEY_USER_ID, String.class);
+
+D:\temp\ikash20\src\main\java\com\twlife\ikash20\ikash20\util\RsaUtil.java:
+   11  
+   12  import org.springframework.data.util.Pair;
+   13: import org.springframework.security.oauth2.jwt.JwtDecoder;
+   14: import org.springframework.security.oauth2.jwt.JwtEncoder;
+   15: import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+   16: import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+   17  
+   18  import com.nimbusds.jose.jwk.JWK;
+
+238 matches across 15 files
